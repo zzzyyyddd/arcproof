@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   useAccount,
   useReadContract,
@@ -12,6 +13,8 @@ import {
   arcProofAbi,
   paymentStatus,
 } from "@/lib/arcProof";
+import { hashProof } from "@/lib/proof";
+import { arcTxUrl } from "@/lib/explorer";
 
 export default function VerifyRelease({
   paymentId = 0n,
@@ -19,6 +22,7 @@ export default function VerifyRelease({
   paymentId?: bigint;
 }) {
   const { address, isConnected } = useAccount();
+  const [proofToVerify, setProofToVerify] = useState("");
 
   const {
     data: payment,
@@ -57,10 +61,26 @@ export default function VerifyRelease({
     verifier &&
     isAddressEqual(address, verifier);
 
+  let calculatedProofHash: `0x${string}` | undefined;
+
+  if (proofToVerify.trim()) {
+    try {
+      calculatedProofHash = hashProof(proofToVerify);
+    } catch {
+      calculatedProofHash = undefined;
+    }
+  }
+
+  const proofMatches =
+    Boolean(calculatedProofHash) &&
+    Boolean(proofHash) &&
+    calculatedProofHash === proofHash;
+
   const canRelease =
     isConnected &&
     isVerifier &&
     status === 2 &&
+    proofMatches &&
     !isWriting &&
     !isConfirming;
 
@@ -82,7 +102,7 @@ export default function VerifyRelease({
       </div>
 
       <h2 className="mt-2 text-2xl font-bold">
-        Approve proof and pay
+        Verify proof and pay
       </h2>
 
       <p className="mt-2 text-sm text-gray-500">
@@ -103,7 +123,7 @@ export default function VerifyRelease({
         </div>
 
         <div>
-          <div className="text-gray-500">Proof hash</div>
+          <div className="text-gray-500">On-chain proof hash</div>
           <div className="mt-1 break-all font-mono text-xs">
             {proofHash ?? "Loading..."}
           </div>
@@ -119,6 +139,36 @@ export default function VerifyRelease({
         )}
       </div>
 
+      {status === 2 && (
+        <div className="mt-5">
+          <label className="mb-2 block text-sm font-medium">
+            Proof to verify
+          </label>
+
+          <textarea
+            value={proofToVerify}
+            onChange={(e) => setProofToVerify(e.target.value)}
+            placeholder="Paste the exact proof content or URL received from the recipient..."
+            rows={4}
+            className="w-full resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-black"
+          />
+
+          {!proofToVerify.trim() ? (
+            <div className="mt-3 rounded-xl bg-gray-50 p-3 text-sm text-gray-500">
+              Enter the exact proof to verify its on-chain fingerprint.
+            </div>
+          ) : proofMatches ? (
+            <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-medium text-emerald-700">
+              Proof matches on-chain fingerprint ✓
+            </div>
+          ) : (
+            <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
+              Proof does not match on-chain fingerprint.
+            </div>
+          )}
+        </div>
+      )}
+
       <button
         type="button"
         onClick={verifyAndRelease}
@@ -131,18 +181,30 @@ export default function VerifyRelease({
             ? "Switch to verifier wallet"
             : status !== 2
               ? "Release unavailable"
-              : isWriting
-                ? "Confirm in wallet..."
-                : isConfirming
-                  ? "Releasing on Arc..."
-                  : isConfirmed
-                    ? "Payment released ✓"
-                    : "Verify & Release USDC"}
+              : !proofMatches
+                ? "Verify proof first"
+                : isWriting
+                  ? "Confirm in wallet..."
+                  : isConfirming
+                    ? "Releasing on Arc..."
+                    : isConfirmed
+                      ? "Payment released ✓"
+                      : "Proof verified — Release USDC"}
       </button>
 
       {hash && (
-        <div className="mt-4 break-all rounded-xl bg-gray-50 p-3 text-xs text-gray-600">
-          Transaction: {hash}
+        <div className="mt-4 rounded-xl bg-gray-50 p-3 text-xs text-gray-600">
+          <div className="break-all">
+            Transaction: {hash}
+          </div>
+          <a
+            href={arcTxUrl(hash)}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-2 inline-block font-medium text-emerald-600 hover:underline"
+          >
+            View on Arc Explorer ↗
+          </a>
         </div>
       )}
 

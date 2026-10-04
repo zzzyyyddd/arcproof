@@ -1,7 +1,8 @@
 import ConnectWallet from "@/components/ConnectWallet";
 import CreatePayment from "@/components/CreatePayment";
-import SubmitProof from "@/components/SubmitProof";
-import VerifyRelease from "@/components/VerifyRelease";
+import PaymentWorkspace from "@/components/PaymentWorkspace";
+import { ARC_PROOF_ADDRESS } from "@/lib/arcProof";
+import { arcAddressUrl } from "@/lib/explorer";
 
 export default function Home() {
   return (
@@ -19,8 +20,23 @@ export default function Home() {
 
       <section className="mx-auto grid max-w-6xl gap-12 px-6 py-20 lg:grid-cols-[1fr_480px] lg:items-start">
         <div className="pt-8">
-          <div className="mb-6 inline-flex rounded-full border px-4 py-2 text-sm">
-            Arc Mainnet · Chain ID 5042
+          <div className="mb-6">
+            <div className="inline-flex rounded-full border px-4 py-2 text-sm">
+              Arc Mainnet · Chain ID 5042
+            </div>
+
+            <div className="mt-3 text-xs text-gray-500">
+              Contract:{" "}
+              <a
+                href={arcAddressUrl(ARC_PROOF_ADDRESS)}
+                target="_blank"
+                rel="noreferrer"
+                className="font-mono font-medium text-emerald-600 hover:underline"
+              >
+                {ARC_PROOF_ADDRESS.slice(0, 8)}...
+                {ARC_PROOF_ADDRESS.slice(-6)} ↗
+              </a>
+            </div>
           </div>
 
           <h1 className="max-w-3xl text-5xl font-bold leading-tight lg:text-6xl">
@@ -64,12 +80,7 @@ export default function Home() {
         <CreatePayment />
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 pb-20">
-        <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-2">
-          <SubmitProof paymentId={0n} />
-          <VerifyRelease paymentId={0n} />
-        </div>
-      </section>
+      <PaymentWorkspace />
     </main>
   );
 }

@@ -8,6 +8,12 @@ ArcProof is a lightweight payment escrow protocol built on **Arc Mainnet**. A pa
 
 No backend, database, admin, or always-on server is required. The settlement logic lives entirely on-chain.
 
+## Live Demo
+
+**[Launch ArcProof](https://arcproof-epwyk3wcp-stock-shield.vercel.app/)**
+
+The production frontend is deployed on Vercel and connects directly to Arc Mainnet.
+
 ## Arc Mainnet Deployment
 
 - **Network:** Arc Mainnet
@@ -305,7 +311,7 @@ Current functionality:
 - [x] On-chain settlement receipt
 - [x] Arc Explorer integration
 - [x] Mainnet end-to-end settlement
-- [ ] Public Vercel deployment
+- [x] Public Vercel deployment
 
 ## License
 

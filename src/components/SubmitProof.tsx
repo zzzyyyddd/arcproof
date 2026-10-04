@@ -140,10 +140,16 @@ export default function SubmitProof({
       >
         {!isConnected
           ? "Connect recipient wallet"
-          : !isRecipient
-            ? "Switch to recipient wallet"
-            : status !== 1
-              ? "Proof unavailable"
+          : status !== 1
+            ? status === 2
+              ? "Proof submitted ✓"
+              : status === 3
+                ? "Payment released ✓"
+                : status === 4
+                  ? "Payment refunded"
+                  : "Proof unavailable"
+            : !isRecipient
+              ? "Switch to recipient wallet"
               : isWriting
                 ? "Confirm in wallet..."
                 : isConfirming

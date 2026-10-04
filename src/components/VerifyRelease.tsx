@@ -177,10 +177,14 @@ export default function VerifyRelease({
       >
         {!isConnected
           ? "Connect verifier wallet"
-          : !isVerifier
-            ? "Switch to verifier wallet"
-            : status !== 2
-              ? "Release unavailable"
+          : status !== 2
+            ? status === 3
+              ? "Payment released ✓"
+              : status === 4
+                ? "Payment refunded"
+                : "Release unavailable"
+            : !isVerifier
+              ? "Switch to verifier wallet"
               : !proofMatches
                 ? "Verify proof first"
                 : isWriting

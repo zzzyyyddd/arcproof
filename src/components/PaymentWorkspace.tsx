@@ -5,6 +5,7 @@ import { useReadContract } from "wagmi";
 import SubmitProof from "@/components/SubmitProof";
 import VerifyRelease from "@/components/VerifyRelease";
 import RefundPayment from "@/components/RefundPayment";
+import SettlementReceipt from "@/components/SettlementReceipt";
 import {
   ARC_PROOF_ADDRESS,
   arcProofAbi,
@@ -149,6 +150,7 @@ export default function PaymentWorkspace() {
             </div>
 
             <RefundPayment paymentId={paymentId} />
+            <SettlementReceipt paymentId={paymentId} />
           </div>
         ) : (
           <div className="rounded-3xl border border-dashed border-gray-300 bg-white p-10 text-center">

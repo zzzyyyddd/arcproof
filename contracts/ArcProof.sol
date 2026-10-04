@@ -7,6 +7,7 @@ contract ArcProof {
     enum Status {
         None,
         Locked,
+        ProofSubmitted,
         Released,
         Refunded
     }
@@ -14,6 +15,7 @@ contract ArcProof {
     struct Payment {
         address payer;
         address recipient;
+        address verifier;
         uint256 amount;
         bytes32 proofHash;
         uint256 deadline;
@@ -28,9 +30,20 @@ contract ArcProof {
         uint256 indexed paymentId,
         address indexed payer,
         address indexed recipient,
+        address verifier,
         uint256 amount,
-        bytes32 proofHash,
         uint256 deadline
+    );
+
+    event ProofSubmitted(
+        uint256 indexed paymentId,
+        address indexed recipient,
+        bytes32 proofHash
+    );
+
+    event PaymentVerified(
+        uint256 indexed paymentId,
+        address indexed verifier
     );
 
     event PaymentReleased(
@@ -47,24 +60,24 @@ contract ArcProof {
 
     error ZeroValue();
     error InvalidRecipient();
-    error InvalidProofHash();
+    error InvalidVerifier();
     error InvalidDeadline();
+    error InvalidProofHash();
+    error InvalidStatus();
     error Unauthorized();
-    error PaymentNotLocked();
-    error InvalidProof();
     error DeadlinePassed();
     error DeadlineNotReached();
     error TransferFailed();
 
-    /// @notice Lock native USDC against a proof hash.
+    /// @notice Create and fund a proof-verified payment.
     function createPayment(
         address recipient,
-        bytes32 proofHash,
+        address verifier,
         uint256 deadline
     ) external payable returns (uint256 paymentId) {
         if (msg.value == 0) revert ZeroValue();
         if (recipient == address(0)) revert InvalidRecipient();
-        if (proofHash == bytes32(0)) revert InvalidProofHash();
+        if (verifier == address(0)) revert InvalidVerifier();
         if (deadline <= block.timestamp) revert InvalidDeadline();
 
         paymentId = nextPaymentId++;
@@ -72,8 +85,9 @@ contract ArcProof {
         payments[paymentId] = Payment({
             payer: msg.sender,
             recipient: recipient,
+            verifier: verifier,
             amount: msg.value,
-            proofHash: proofHash,
+            proofHash: bytes32(0),
             deadline: deadline,
             status: Status.Locked
         });
@@ -82,28 +96,45 @@ contract ArcProof {
             paymentId,
             msg.sender,
             recipient,
+            verifier,
             msg.value,
-            proofHash,
             deadline
         );
     }
 
-    /// @notice Reveal the secret proof and release payment if it matches.
+    /// @notice Recipient commits proof of completed work on-chain.
     function submitProof(
         uint256 paymentId,
-        string calldata proof
+        bytes32 proofHash
     ) external {
         Payment storage payment = payments[paymentId];
 
-        if (payment.status != Status.Locked) revert PaymentNotLocked();
+        if (payment.status != Status.Locked) revert InvalidStatus();
         if (msg.sender != payment.recipient) revert Unauthorized();
         if (block.timestamp > payment.deadline) revert DeadlinePassed();
+        if (proofHash == bytes32(0)) revert InvalidProofHash();
 
-        bytes32 submittedHash = keccak256(bytes(proof));
+        payment.proofHash = proofHash;
+        payment.status = Status.ProofSubmitted;
 
-        if (submittedHash != payment.proofHash) revert InvalidProof();
+        emit ProofSubmitted(
+            paymentId,
+            payment.recipient,
+            proofHash
+        );
+    }
+
+    /// @notice Verifier approves submitted proof and releases payment.
+    function verifyAndRelease(uint256 paymentId) external {
+        Payment storage payment = payments[paymentId];
+
+        if (payment.status != Status.ProofSubmitted) revert InvalidStatus();
+        if (msg.sender != payment.verifier) revert Unauthorized();
+        if (block.timestamp > payment.deadline) revert DeadlinePassed();
 
         payment.status = Status.Released;
+
+        emit PaymentVerified(paymentId, payment.verifier);
 
         (bool success, ) = payable(payment.recipient).call{
             value: payment.amount
@@ -118,11 +149,15 @@ contract ArcProof {
         );
     }
 
-    /// @notice Refund payer after deadline if no valid proof was submitted.
+    /// @notice Payer can reclaim funds after the deadline.
     function refund(uint256 paymentId) external {
         Payment storage payment = payments[paymentId];
 
-        if (payment.status != Status.Locked) revert PaymentNotLocked();
+        if (
+            payment.status != Status.Locked &&
+            payment.status != Status.ProofSubmitted
+        ) revert InvalidStatus();
+
         if (msg.sender != payment.payer) revert Unauthorized();
         if (block.timestamp <= payment.deadline) revert DeadlineNotReached();
 

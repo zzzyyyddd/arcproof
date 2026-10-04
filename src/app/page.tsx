@@ -1,5 +1,7 @@
 import ConnectWallet from "@/components/ConnectWallet";
 import CreatePayment from "@/components/CreatePayment";
+import SubmitProof from "@/components/SubmitProof";
+import VerifyRelease from "@/components/VerifyRelease";
 
 export default function Home() {
   return (
@@ -60,6 +62,13 @@ export default function Home() {
         </div>
 
         <CreatePayment />
+      </section>
+
+      <section className="mx-auto max-w-6xl px-6 pb-20">
+        <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-2">
+          <SubmitProof paymentId={0n} />
+          <VerifyRelease paymentId={0n} />
+        </div>
       </section>
     </main>
   );

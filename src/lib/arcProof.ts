@@ -1,8 +1,6 @@
 export const ARC_PROOF_ADDRESS =
-  "0x0000000000000000000000000000000000000000" as const;
+  "0x417dc5f887a23b82de7f706face8f4d8affa56a8" as const;
 
-// Temporary zero address.
-// Replace with the real Arc Mainnet contract address after deployment.
 
 export const arcProofAbi = [
   {

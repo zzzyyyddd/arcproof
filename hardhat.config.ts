@@ -11,6 +11,7 @@ export default defineConfig({
       production: {
         version: "0.8.34",
         settings: {
+          evmVersion: "paris",
           optimizer: {
             enabled: true,
             runs: 200,
@@ -28,11 +29,11 @@ export default defineConfig({
       type: "edr-simulated",
       chainType: "op",
     },
-    sepolia: {
+    arc: {
       type: "http",
       chainType: "l1",
-      url: configVariable("SEPOLIA_RPC_URL"),
-      accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
+      url: "https://rpc.mainnet.arc.io",
+      accounts: [configVariable("ARC_PRIVATE_KEY")],
     },
   },
 });

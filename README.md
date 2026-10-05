@@ -10,7 +10,7 @@ No backend, database, admin, or always-on server is required. The settlement log
 
 ## Live Demo
 
-**[Launch ArcProof](https://arcproof-epwyk3wcp-stock-shield.vercel.app/)**
+**[Launch ArcProof](https://arcproof-woad.vercel.app/)**
 
 The production frontend is deployed on Vercel and connects directly to Arc Mainnet.
 

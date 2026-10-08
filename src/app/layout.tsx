@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ArcProof",
-  description: "Proof-verified USDC payments on Arc",
+  title: "ArcProof | Proof-Verified USDC Payments on Arc",
+  description: "Lock USDC on Arc Mainnet, verify delivery proof, and release payments securely with ArcProof.",
 };
 
 export default function RootLayout({
